@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基因测序数据处理工具</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- SheetJS -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .header {
+            text-align: center;
+            padding: 60px 0 40px;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .header p {
+            font-size: 1.1rem;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+        .card-header {
+            padding: 25px;
+            border-radius: 12px 12px 0 0;
+        }
+        .card-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: white;
+        }
+        .card-header p {
+            margin: 8px 0 0;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .card-body {
+            padding: 25px;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        .feature-list li i {
+            margin-right: 10px;
+            color: #007bff;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+        .file-upload {
+            border: 2px dashed #ced4da;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+            margin-bottom: 20px;
+        }
+        .file-upload:hover {
+            border-color: #007bff;
+            background-color: #f0f4f8;
+        }
+        .file-upload.dragover {
+            border-color: #28a745;
+            background-color: #e6f7ee;
+        }
+        .file-upload i {
+            font-size: 3rem;
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+        .file-upload p {
+            margin: 10px 0;
+            color: #666;
+        }
+        .file-upload small {
+            color: #999;
+        }
+        .file-name {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 10px;
+        }
+        .alert {
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: #007bff;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .back-link:hover {
+            text-decoration: none;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .back-link i {
+            margin-right: 8px;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .section-subtitle {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .guide-section {
+            background-color: #e7f3ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .guide-section h4 {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #007bff;
+        }
+        .guide-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        .guide-section li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        .guide-section li i {
+            margin-right: 10px;
+            color: #28a745;
+        }
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            margin-top: 60px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        /* mNGS卡片样式 */
+        .mngs-card .card-header {
+            background-color: #007bff;
+        }
+        /* tNGS卡片样式 */
+        .tngs-card .card-header {
+            background-color: #6f42c1;
+        }
+        .tngs-card .btn-primary {
+            background-color: #6f42c1;
+            border-color: #6f42c1;
+        }
+        .tngs-card .btn-primary:hover {
+            background-color: #5a32a3;
+            border-color: #542f98;
+        }
+        .tngs-card .file-upload i {
+            color: #6f42c1;
+        }
+        .tngs-card .guide-section {
+            background-color: #f3e8ff;
+        }
+        .tngs-card .guide-section h4 {
+            color: #6f42c1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 主页面 -->
+    <div id="home-page" class="container">
+        <div class="header">
+            <h1>基因测序数据处理工具</h1>
+            <p>高效处理mNGS和tNGS数据，自动生成标准化临床信息表格，支持Excel/CSV文件上传、处理和下载</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- mNGS卡片 -->
+            <div class="col-md-6">
+                <div class="card mngs-card">
+                    <div class="card-header">
+                        <h3>mNGS 临床信息表处理</h3>
+                        <p>自动整合多文件数据，生成标准临床信息表</p>
+                    </div>
+                    <div class="card-body">
+                        <ul class="feature-list">
+                            <li><i class="bi bi-folder2"></i>支持上传4个输入文件和1个输出模板</li>
+                            <li><i class="bi bi-pencil"></i>自动匹配字段并填充数据</li>
+                            <li><i class="bi bi-check-circle"></i>完整性校验和错误提示</li>
+                        </ul>
+                        <button type="button" class="btn btn-primary w-100" onclick="showMNGSPage()">开始处理</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- tNGS卡片 -->
+            <div class="col-md-6">
+                <div class="card tngs-card">
+                    <div class="card-header">
+                        <h3>tNGS 样本信息表处理</h3>
+                        <p>自动转换原始数据，生成标准tNGS报告</p>
+                    </div>
+                    <div class="card-body">
+                        <ul class="feature-list">
+                            <li><i class="bi bi-folder2"></i>支持上传tNGS原始数据文件</li>
+                            <li><i class="bi bi-pencil"></i>自动映射和转换字段格式</li>
+                            <li><i class="bi bi-check-circle"></i>唯一性校验和错误提示</li>
+                        </ul>
+                        <button type="button" class="btn btn-primary w-100" onclick="showTNGSPage()">开始处理</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2026 基因测序数据处理工具 | 所有数据处理均在本地完成，保障数据安全</p>
+        </div>
+    </div>
+    
+    <!-- mNGS处理页面 -->
+    <div id="mngs-page" class="container" style="display: none;">
+        <a href="#" class="back-link" onclick="showHomePage()"><i class="bi bi-arrow-left"></i> 返回主页</a>
+        
+        <h2 class="section-title">mNGS 临床信息表处理</h2>
+        <p class="section-subtitle">上传4个输入文件和1个输出模板，系统将自动整合数据并生成完整的临床信息表</p>
+        
+        <div class="card">
+            <div class="card-body">
+                <h5 class="mb-3">输入文件（4个Excel/CSV文件）</h5>
+                <div class="file-upload" id="mngs-input-upload">
+                    <input type="file" class="form-control d-none" accept=".xlsx,.xls,.csv" multiple id="mngs-input-files">
+                    <i class="bi bi-cloud-upload"></i>
+                    <p>拖拽文件到此处或点击上传</p>
+                    <small>支持Excel文件 (.xlsx, .xls) 或 CSV（最多4个文件）</small>
+                    <p class="file-name" id="mngs-input-file-names"></p>
+                </div>
+                
+                <h5 class="mb-3">输出模板文件（Excel文件）</h5>
+                <div class="file-upload" id="mngs-template-upload">
+                    <input type="file" class="form-control d-none" accept=".xlsx,.xls" id="mngs-template-file">
+                    <i class="bi bi-cloud-upload"></i>
+                    <p>拖拽文件到此处或点击上传</p>
+                    <small>支持Excel文件 (.xlsx, .xls)</small>
+                    <p class="file-name" id="mngs-template-file-name"></p>
+                </div>
+                
+                <button type="button" class="btn btn-primary w-100 mb-3" id="process-mngs">开始处理文件</button>
+                <button type="button" class="btn btn-secondary w-100 mb-3" id="preview-mngs" style="display: none;">预览合并表格</button>
+                
+                <div id="mngs-result" class="mt-4"></div>
+                <div id="mngs-preview" class="mt-4" style="display: none;">
+                    <h5>合并表格预览</h5>
+                    <div class="overflow-auto" style="max-height: 400px;">
+                        <table class="table table-striped table-bordered" id="mngs-preview-table">
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="guide-section">
+            <h4>操作指南</h4>
+            <ul>
+                <li><i class="bi bi-check"></i> 上传包含mNGS数据的4个Excel/CSV文件</li>
+                <li><i class="bi bi-check"></i> 上传临床信息表模板文件</li>
+                <li><i class="bi bi-check"></i> 点击"开始处理文件"按钮进行数据处理</li>
+                <li><i class="bi bi-check"></i> 处理完成后，根据提示下载生成的临床信息表</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- tNGS处理页面 -->
+    <div id="tngs-page" class="container" style="display: none;">
+        <a href="#" class="back-link" onclick="showHomePage()"><i class="bi bi-arrow-left"></i> 返回主页</a>
+        
+        <h2 class="section-title">tNGS 样本信息表处理</h2>
+        <p class="section-subtitle">上传tNGS原始数据文件，系统将自动转换格式并生成标准的tNGS样本信息表</p>
+        
+        <div class="card tngs-card">
+            <div class="card-body">
+                <h5 class="mb-3">tNGS原始文件（Excel/CSV）</h5>
+                <div class="file-upload" id="tngs-input-upload">
+                    <input type="file" class="form-control d-none" accept=".xlsx,.xls,.csv" id="tngs-input-file">
+                    <i class="bi bi-cloud-upload"></i>
+                    <p>拖拽文件到此处或点击上传</p>
+                    <small>支持Excel文件 (.xlsx, .xls) 或 CSV</small>
+                    <p class="file-name" id="tngs-input-file-name"></p>
+                </div>
+                
+                <button type="button" class="btn btn-primary w-100" id="process-tngs">转换文件格式</button>
+                
+                <div id="tngs-result" class="mt-4"></div>
+            </div>
+        </div>
+        
+        <div class="guide-section">
+            <h4>操作指南</h4>
+            <ul>
+                <li><i class="bi bi-check"></i> 上传包含tNGS原始数据的Excel/CSV文件</li>
+                <li><i class="bi bi-check"></i> 点击"转换文件格式"按钮进行数据处理</li>
+                <li><i class="bi bi-check"></i> 处理完成后，根据提示下载生成的tNGS样本信息表</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 页面切换
+        function showHomePage() {
+            document.getElementById('home-page').style.display = 'block';
+            document.getElementById('mngs-page').style.display = 'none';
+            document.getElementById('tngs-page').style.display = 'none';
+        }
+        
+        function showMNGSPage() {
+            document.getElementById('home-page').style.display = 'none';
+            document.getElementById('mngs-page').style.display = 'block';
+            document.getElementById('tngs-page').style.display = 'none';
+        }
+        
+        function showTNGSPage() {
+            document.getElementById('home-page').style.display = 'none';
+            document.getElementById('mngs-page').style.display = 'none';
+            document.getElementById('tngs-page').style.display = 'block';
+        }
+        
+        // 通用文件上传处理
+        function initFileUpload(uploadArea, inputId, fileNameId, multiple = false) {
+            const upload = document.getElementById(uploadArea);
+            const input = document.getElementById(inputId);
+            const fileName = document.getElementById(fileNameId);
+            
+            // 点击上传
+            upload.addEventListener('click', () => {
+                input.click();
+            });
+            
+            // 文件选择
+            input.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    if (multiple) {
+                        const fileNames = Array.from(e.target.files).map(file => file.name).join(', ');
+                        fileName.textContent = `已选择 ${e.target.files.length} 个文件：${fileNames}`;
+                    } else {
+                        fileName.textContent = e.target.files[0].name;
+                    }
+                }
+            });
+            
+            // 拖拽上传
+            upload.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                upload.classList.add('dragover');
+            });
+            
+            upload.addEventListener('dragleave', () => {
+                upload.classList.remove('dragover');
+            });
+            
+            upload.addEventListener('drop', (e) => {
+                e.preventDefault();
+                upload.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    input.files = e.dataTransfer.files;
+                    if (multiple) {
+                        const fileNames = Array.from(e.dataTransfer.files).map(file => file.name).join(', ');
+                        fileName.textContent = `已选择 ${e.dataTransfer.files.length} 个文件：${fileNames}`;
+                    } else {
+                        fileName.textContent = e.dataTransfer.files[0].name;
+                    }
+                }
+            });
+        }
+        
+        // 当DOM加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化文件上传区域
+            initFileUpload('mngs-input-upload', 'mngs-input-files', 'mngs-input-file-names', true);
+            initFileUpload('mngs-template-upload', 'mngs-template-file', 'mngs-template-file-name');
+            initFileUpload('tngs-input-upload', 'tngs-input-file', 'tngs-input-file-name');
+            
+            // 预览按钮点击事件
+            document.getElementById('preview-mngs').addEventListener('click', previewMNGSData);
+            
+            // mNGS 模块处理
+            document.getElementById('process-mngs').addEventListener('click', async () => {
+                const inputFiles = document.getElementById('mngs-input-files').files;
+                const templateFile = document.getElementById('mngs-template-file').files[0];
+                
+                if (inputFiles.length === 0 || !templateFile) {
+                    showAlert('mngs-result', '请上传所有文件', 'danger');
+                    return;
+                }
+                
+                if (inputFiles.length > 4) {
+                    showAlert('mngs-result', '最多只能上传4个输入文件', 'danger');
+                    return;
+                }
+                
+                try {
+                    showAlert('mngs-result', '处理中...', 'info');
+                    
+                    // 读取所有输入文件
+                    const inputWorkbooks = await Promise.all(Array.from(inputFiles).map(file => readExcelFile(file)));
+                    // 读取模板文件
+                    const templateWorkbook = await readExcelFile(templateFile);
+                    
+                    // 处理数据
+                    const result = processMNGSData(inputWorkbooks, templateWorkbook);
+                    
+                    // 生成并下载文件
+                    if (result.valid) {
+                        const fileName = `临床信息表_${getCurrentDate()}.xlsx`;
+                        downloadExcel(result.workbook, fileName);
+                        showAlert('mngs-result', `处理成功！文件已生成：${fileName}`, 'success');
+                    } else {
+                        showAlert('mngs-result', `处理失败：${result.error}`, 'danger');
+                    }
+                } catch (error) {
+                    showAlert('mngs-result', `处理错误：${error.message}`, 'danger');
+                }
+            });
+            
+            // tNGS 模块处理
+            document.getElementById('process-tngs').addEventListener('click', async () => {
+                const file = document.getElementById('tngs-input-file').files[0];
+                
+                if (!file) {
+                    showAlert('tngs-result', '请上传tNGS原始文件', 'danger');
+                    return;
+                }
+                
+                try {
+                    showAlert('tngs-result', '处理中...', 'info');
+                    
+                    // 读取文件
+                    const workbook = await readExcelFile(file);
+                    
+                    // 处理数据
+                    const result = processTNGSData(workbook);
+                    
+                    // 生成并下载文件
+                    if (result.valid) {
+                        const fileName = `tNGS样本信息表_${getCurrentDate()}.xlsx`;
+                        
+                        // 检查是否有特殊医院
+                        if (result.hasSpecialHospital) {
+                            // 弹窗提醒
+                            alert('当前送检医院出现沈阳市胸科医院或大连医科大学附属第一医院');
+                        }
+                        
+                        // 无论是否有特殊医院，都正常下载
+                        downloadExcel(result.workbook, fileName);
+                        showAlert('tngs-result', `处理成功！文件已生成：${fileName}`, 'success');
+                    } else {
+                        showAlert('tngs-result', `处理失败：${result.error}`, 'danger');
+                    }
+                } catch (error) {
+                    showAlert('tngs-result', `处理错误：${error.message}`, 'danger');
+                }
+            });
+        });
+        
+        // 读取Excel文件
+        function readExcelFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        resolve(workbook);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = () => {
+                    reject(new Error('文件读取失败'));
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        // 显示提示信息
+        function showAlert(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="alert alert-${type}" role="alert">
+                    ${message}
+                </div>
+            `;
+        }
+        
+        // 获取当前日期（MMDDSS格式）
+        function getCurrentDate() {
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${month}${day}${seconds}`;
+        }
+        
+        // 下载Excel文件
+        function downloadExcel(workbook, fileName) {
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 全局变量，用于存储合并后的表格数据
+        let mergedMNGSData = [];
+        
+        // 处理mNGS数据
+        function processMNGSData(inputWorkbooks, templateWorkbook) {
+            try {
+                // 1. 提取所有工作表数据
+                const allSheets = [];
+                inputWorkbooks.forEach(workbook => {
+                    workbook.SheetNames.forEach(sheetName => {
+                        const sheet = workbook.Sheets[sheetName];
+                        const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                        if (data.length > 0) {
+                            allSheets.push(data);
+                        }
+                    });
+                });
+                
+                // 2. 分组为提取表和建库表
+                const extractionSheets = [];
+                const librarySheets = [];
+                
+                allSheets.forEach(sheet => {
+                    // 查找检测工序列
+                    const headers = sheet[0];
+                    const processColIndex = headers.findIndex(header => 
+                        typeof header === 'string' && header.includes('检测工序')
+                    );
+                    
+                    if (processColIndex !== -1) {
+                        // 检查是否包含提取或建库
+                        let hasExtraction = false;
+                        let hasLibrary = false;
+                        
+                        for (let i = 1; i < sheet.length; i++) {
+                            const row = sheet[i];
+                            const processValue = row[processColIndex];
+                            if (typeof processValue === 'string') {
+                                if (processValue.includes('提取')) {
+                                    hasExtraction = true;
+                                }
+                                if (processValue.includes('建库')) {
+                                    hasLibrary = true;
+                                }
+                            }
+                        }
+                        
+                        if (hasExtraction) {
+                            extractionSheets.push(sheet);
+                        }
+                        if (hasLibrary) {
+                            librarySheets.push(sheet);
+                        }
+                    }
+                });
+                
+                // 3. 合并提取表
+                const mergedExtractionSheet = mergeSheets(extractionSheets);
+                // 4. 合并建库表
+                const mergedLibrarySheet = mergeSheets(librarySheets);
+                
+                // 5. 根据新逻辑合并提取表和建库表
+                const finalMergedSheet = mergeExtractionAndLibrarySheets(mergedExtractionSheet, mergedLibrarySheet);
+                
+                // 保存合并后的数据用于预览
+                mergedMNGSData = finalMergedSheet;
+                
+                // 显示预览按钮
+                document.getElementById('preview-mngs').style.display = 'block';
+                
+                // 6. 读取模板文件
+                const templateSheet = templateWorkbook.Sheets[templateWorkbook.SheetNames[0]];
+                const templateData = XLSX.utils.sheet_to_json(templateSheet, { header: 1 });
+                
+                // 7. 填充模板
+                const filledTemplate = fillTemplate(templateData, finalMergedSheet);
+                
+                // 8. 校验
+                const validationResult = validateMNGSResult(filledTemplate, finalMergedSheet);
+                
+                if (!validationResult.valid) {
+                    return { valid: false, error: validationResult.error };
+                }
+                
+                // 9. 生成新的工作簿
+                const newWorkbook = XLSX.utils.book_new();
+                const newSheet = XLSX.utils.aoa_to_sheet(filledTemplate);
+                XLSX.utils.book_append_sheet(newWorkbook, newSheet, '临床信息表');
+                
+                return { valid: true, workbook: newWorkbook };
+            } catch (error) {
+                return { valid: false, error: error.message };
+            }
+        }
+        
+        // 合并提取表和建库表（新逻辑）
+        function mergeExtractionAndLibrarySheets(extractionSheet, librarySheet) {
+            if (!extractionSheet.length || !librarySheet.length) return [];
+            
+            // 获取表头
+            const extractionHeaders = extractionSheet[0];
+            const libraryHeaders = librarySheet[0];
+            
+            // 合并表头：提取表表头在前，建库表表头在后，去重
+            const combinedHeaders = [...extractionHeaders];
+            libraryHeaders.forEach(header => {
+                if (!combinedHeaders.includes(header)) {
+                    combinedHeaders.push(header);
+                }
+            });
+            
+            const result = [combinedHeaders];
+            
+            // 查找关键字段列
+            const sampleIdColExt = extractionHeaders.findIndex(header => 
+                typeof header === 'string' && header.includes('原始样本编号')
+            );
+            const processColExt = extractionHeaders.findIndex(header => 
+                typeof header === 'string' && header.includes('检测工序')
+            );
+            
+            const sampleIdColLib = libraryHeaders.findIndex(header => 
+                typeof header === 'string' && header.includes('原始样本编号')
+            );
+            const processColLib = libraryHeaders.findIndex(header => 
+                typeof header === 'string' && header.includes('检测工序')
+            );
+            
+            if (sampleIdColExt === -1 || processColExt === -1 || sampleIdColLib === -1 || processColLib === -1) {
+                throw new Error('无法找到关键字段列');
+            }
+            
+            // 创建建库表的映射：key为样本编号+DNA/RNA标识
+            const libraryMap = new Map();
+            for (let i = 1; i < librarySheet.length; i++) {
+                const row = librarySheet[i];
+                const sampleId = row[sampleIdColLib];
+                const process = row[processColLib];
+                if (sampleId && process) {
+                    // 提取DNA或RNA标识
+                    let dnaRnaFlag = '';
+                    if (process.includes('DNA')) {
+                        dnaRnaFlag = 'DNA';
+                    } else if (process.includes('RNA')) {
+                        dnaRnaFlag = 'RNA';
+                    }
+                    if (dnaRnaFlag) {
+                        const key = `${sampleId}_${dnaRnaFlag}`;
+                        // 存储建库表行
+                        libraryMap.set(key, row);
+                    }
+                }
+            }
+            
+            // 合并数据
+            for (let i = 1; i < extractionSheet.length; i++) {
+                const extractionRow = extractionSheet[i];
+                const sampleId = extractionRow[sampleIdColExt];
+                const process = extractionRow[processColExt];
+                
+                if (sampleId && process) {
+                    // 提取DNA或RNA标识
+                    let dnaRnaFlag = '';
+                    if (process.includes('DNA')) {
+                        dnaRnaFlag = 'DNA';
+                    } else if (process.includes('RNA')) {
+                        dnaRnaFlag = 'RNA';
+                    }
+                    
+                    if (dnaRnaFlag) {
+                        const key = `${sampleId}_${dnaRnaFlag}`;
+                        const libraryRow = libraryMap.get(key);
+                        
+                        // 创建新行
+                        const newRow = combinedHeaders.map(header => {
+                            // 先从提取表中获取值
+                            const extIndex = extractionHeaders.indexOf(header);
+                            if (extIndex !== -1) {
+                                return extractionRow[extIndex];
+                            }
+                            // 如果提取表中没有，则从建库表中获取
+                            if (libraryRow) {
+                                const libIndex = libraryHeaders.indexOf(header);
+                                if (libIndex !== -1) {
+                                    return libraryRow[libIndex];
+                                }
+                            }
+                            return '';
+                        });
+                        
+                        result.push(newRow);
+                    }
+                }
+            }
+            
+            return result;
+        }
+        
+        // 预览合并表格
+        function previewMNGSData() {
+            if (mergedMNGSData.length === 0) {
+                showAlert('mngs-result', '请先处理文件以生成合并表格', 'info');
+                return;
+            }
+            
+            const table = document.getElementById('mngs-preview-table');
+            table.innerHTML = '';
+            
+            // 生成表头
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            mergedMNGSData[0].forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // 生成数据行
+            const tbody = document.createElement('tbody');
+            for (let i = 1; i < mergedMNGSData.length; i++) {
+                const row = document.createElement('tr');
+                mergedMNGSData[i].forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell || '';
+                    row.appendChild(td);
+                });
+                tbody.appendChild(row);
+            }
+            table.appendChild(tbody);
+            
+            // 显示预览区域
+            document.getElementById('mngs-preview').style.display = 'block';
+        }
+        
+        // 合并多个工作表
+        function mergeSheets(sheets) {
+            if (sheets.length === 0) return [];
+            if (sheets.length === 1) return sheets[0];
+            
+            // 获取所有表头
+            const allHeaders = new Set();
+            sheets.forEach(sheet => {
+                sheet[0].forEach(header => allHeaders.add(header));
+            });
+            
+            const headers = Array.from(allHeaders);
+            const result = [headers];
+            
+            // 合并数据
+            sheets.forEach(sheet => {
+                const headerMap = new Map();
+                sheet[0].forEach((header, index) => {
+                    headerMap.set(header, index);
+                });
+                
+                for (let i = 1; i < sheet.length; i++) {
+                    const row = sheet[i];
+                    const newRow = headers.map(header => {
+                        const index = headerMap.get(header);
+                        return index !== undefined ? row[index] : '';
+                    });
+                    result.push(newRow);
+                }
+            });
+            
+            return result;
+        }
+        
+        // 根据唯一标识合并两个表
+        function mergeByUniqueId(sheet1, sheet2) {
+            if (!sheet1.length || !sheet2.length) return [];
+            
+            // 获取表头
+            const headers1 = sheet1[0];
+            const headers2 = sheet2[0];
+            const combinedHeaders = [...new Set([...headers1, ...headers2])];
+            const result = [combinedHeaders];
+            
+            // 查找关键字段列
+            const sampleIdCol1 = headers1.findIndex(header => 
+                typeof header === 'string' && header.includes('原始样本编号')
+            );
+            const processCol1 = headers1.findIndex(header => 
+                typeof header === 'string' && header.includes('检测工序')
+            );
+            
+            const sampleIdCol2 = headers2.findIndex(header => 
+                typeof header === 'string' && header.includes('原始样本编号')
+            );
+            const processCol2 = headers2.findIndex(header => 
+                typeof header === 'string' && header.includes('检测工序')
+            );
+            
+            if (sampleIdCol1 === -1 || processCol1 === -1 || sampleIdCol2 === -1 || processCol2 === -1) {
+                throw new Error('无法找到关键字段列');
+            }
+            
+            // 创建sheet2的映射
+            const sheet2Map = new Map();
+            for (let i = 1; i < sheet2.length; i++) {
+                const row = sheet2[i];
+                const sampleId = row[sampleIdCol2];
+                const process = row[processCol2];
+                if (sampleId && process) {
+                    const key = `${sampleId}_${process}`;
+                    sheet2Map.set(key, row);
+                }
+            }
+            
+            // 合并数据
+            for (let i = 1; i < sheet1.length; i++) {
+                const row1 = sheet1[i];
+                const sampleId = row1[sampleIdCol1];
+                const process = row1[processCol1];
+                
+                if (sampleId && process) {
+                    const key = `${sampleId}_${process}`;
+                    const row2 = sheet2Map.get(key);
+                    const newRow = combinedHeaders.map(header => {
+                        let value = '';
+                        const index1 = headers1.indexOf(header);
+                        if (index1 !== -1) {
+                            value = row1[index1];
+                        }
+                        if (!value && row2) {
+                            const index2 = headers2.indexOf(header);
+                            if (index2 !== -1) {
+                                value = row2[index2];
+                            }
+                        }
+                        return value;
+                    });
+                    result.push(newRow);
+                }
+            }
+            
+            return result;
+        }
+        
+        // 填充模板
+        function fillTemplate(templateData, mergedSheet) {
+            if (!templateData.length || !mergedSheet.length) return templateData;
+            
+            const templateHeaders = templateData[0];
+            const mergedHeaders = mergedSheet[0];
+            
+            // 查找关键字段列
+            const templateSampleIdCol = templateHeaders.findIndex(header => 
+                typeof header === 'string' && (header.includes('原始样本编号') || header.includes('样本编号'))
+            );
+            const templateProcessCol = templateHeaders.findIndex(header => 
+                typeof header === 'string' && header.includes('检测流程')
+            );
+            
+            const mergedSampleIdCol = mergedHeaders.findIndex(header => 
+                typeof header === 'string' && header.includes('原始样本编号')
+            );
+            const mergedProcessCol = mergedHeaders.findIndex(header => 
+                typeof header === 'string' && header.includes('检测工序')
+            );
+            
+            if (templateSampleIdCol === -1 || mergedSampleIdCol === -1 || mergedProcessCol === -1) {
+                throw new Error('无法找到关键字段列');
+            }
+            
+            // 创建mergedSheet的映射
+            const mergedMap = new Map();
+            for (let i = 1; i < mergedSheet.length; i++) {
+                const row = mergedSheet[i];
+                const sampleId = row[mergedSampleIdCol];
+                const process = row[mergedProcessCol];
+                if (sampleId && process) {
+                    // 提取DNA或RNA标识
+                    let dnaRnaFlag = '';
+                    if (process.includes('DNA')) {
+                        dnaRnaFlag = 'DNA';
+                    } else if (process.includes('RNA')) {
+                        dnaRnaFlag = 'RNA';
+                    }
+                    if (dnaRnaFlag) {
+                        const key = `${sampleId}_${dnaRnaFlag}`;
+                        // 存储合并表行
+                        mergedMap.set(key, row);
+                    }
+                }
+            }
+            
+            // 填充模板
+            const filledTemplate = [...templateData];
+            for (let i = 1; i < filledTemplate.length; i++) {
+                const row = filledTemplate[i];
+                const sampleId = row[templateSampleIdCol];
+                let process = '';
+                if (templateProcessCol !== -1) {
+                    process = row[templateProcessCol];
+                }
+                
+                if (sampleId) {
+                    // 根据检测流程确定匹配规则
+                    let matchingRow = null;
+                    if (process === 'mNGS-DNA') {
+                        // 查找含有DNA的检测工序
+                        const key = `${sampleId}_DNA`;
+                        matchingRow = mergedMap.get(key);
+                    } else if (process === 'mNGS-RNA' || process === 'mNGS-DRA') {
+                        // 查找含有RNA的检测工序
+                        const key = `${sampleId}_RNA`;
+                        matchingRow = mergedMap.get(key);
+                    } else {
+                        // 尝试匹配所有可能的process值
+                        const keys = Array.from(mergedMap.keys()).filter(key => key.startsWith(`${sampleId}_`));
+                        if (keys.length > 0) {
+                            matchingRow = mergedMap.get(keys[0]);
+                        }
+                    }
+                    
+                    if (matchingRow) {
+                        // 填充相同表头的字段
+                        templateHeaders.forEach((header, index) => {
+                            const mergedIndex = mergedHeaders.indexOf(header);
+                            if (mergedIndex !== -1 && matchingRow[mergedIndex]) {
+                                row[index] = matchingRow[mergedIndex];
+                            }
+                        });
+                        
+                        // 特殊字段映射
+                        // DNA浓度、RNA浓度对应提取浓度
+                        const dnaConcentrationIndex = mergedHeaders.findIndex(header => 
+                            typeof header === 'string' && header.includes('DNA浓度')
+                        );
+                        const rnaConcentrationIndex = mergedHeaders.findIndex(header => 
+                            typeof header === 'string' && header.includes('RNA浓度')
+                        );
+                        const extractionConcentrationIndex = templateHeaders.findIndex(header => 
+                            typeof header === 'string' && header.includes('提取浓度')
+                        );
+                        
+                        if (extractionConcentrationIndex !== -1) {
+                            if (dnaConcentrationIndex !== -1 && matchingRow[dnaConcentrationIndex]) {
+                                row[extractionConcentrationIndex] = matchingRow[dnaConcentrationIndex];
+                            } else if (rnaConcentrationIndex !== -1 && matchingRow[rnaConcentrationIndex]) {
+                                row[extractionConcentrationIndex] = matchingRow[rnaConcentrationIndex];
+                            }
+                        }
+                        
+                        // 文库名对应文库编号（先去除已有内容）
+                        const libraryNameIndex = mergedHeaders.findIndex(header => 
+                            typeof header === 'string' && header.includes('文库名')
+                        );
+                        const libraryIdIndex = templateHeaders.findIndex(header => 
+                            typeof header === 'string' && header.includes('文库编号')
+                        );
+                        
+                        if (libraryIdIndex !== -1) {
+                            row[libraryIdIndex] = ''; // 先去除已有内容
+                            if (libraryNameIndex !== -1 && matchingRow[libraryNameIndex]) {
+                                row[libraryIdIndex] = matchingRow[libraryNameIndex];
+                            }
+                        }
+                        
+                        // 文库浓度默认写1
+                        const libraryConcentrationIndex = templateHeaders.findIndex(header => 
+                            typeof header === 'string' && header.includes('文库浓度')
+                        );
+                        
+                        if (libraryConcentrationIndex !== -1) {
+                            row[libraryConcentrationIndex] = 1;
+                        }
+                        
+                        // 从合并表格抓取PCR1循环数，填写到输出表格的PCR循环数列
+                        const pcr1CycleIndex = mergedHeaders.findIndex(header => 
+                            typeof header === 'string' && header.includes('PCR1循环数')
+                        );
+                        const pcrCycleIndex = templateHeaders.findIndex(header => 
+                            typeof header === 'string' && header.includes('PCR循环数')
+                        );
+                        
+                        if (pcr1CycleIndex !== -1 && pcrCycleIndex !== -1 && matchingRow[pcr1CycleIndex]) {
+                            row[pcrCycleIndex] = matchingRow[pcr1CycleIndex];
+                        }
+                    }
+                }
+            }
+            
+            // 处理提取试剂盒批号列空值
+            const extractionKitBatchCol = templateHeaders.findIndex(header => 
+                typeof header === 'string' && (header.includes('提取试剂盒批号') || header.includes('提取试剂批号'))
+            );
+            
+            if (extractionKitBatchCol !== -1) {
+                // 收集所有非空的提取试剂盒批号
+                const batchNumbers = [];
+                for (let i = 1; i < filledTemplate.length; i++) {
+                    const batch = filledTemplate[i][extractionKitBatchCol];
+                    if (batch) {
+                        batchNumbers.push(batch);
+                    }
+                }
+                
+                // 如果有非空值，用第一个非空值填充空值
+                if (batchNumbers.length > 0) {
+                    const fillValue = batchNumbers[0];
+                    for (let i = 1; i < filledTemplate.length; i++) {
+                        if (!filledTemplate[i][extractionKitBatchCol]) {
+                            filledTemplate[i][extractionKitBatchCol] = fillValue;
+                        }
+                    }
+                }
+            }
+            
+            return filledTemplate;
+        }
+        
+        // 校验mNGS结果
+        function validateMNGSResult(filledTemplate, mergedSheet) {
+            // 检查数据行数
+            const inputRows = mergedSheet.length - 1; // 减去表头
+            const outputRows = filledTemplate.length - 1; // 减去表头
+            
+            if (inputRows !== outputRows) {
+                return { valid: false, error: `数据行数不一致，输入：${inputRows}，输出：${outputRows}` };
+            }
+            
+            // 移除空值检查，空值直接往下进行
+            
+            return { valid: true };
+        }
+        
+        // 处理tNGS数据
+        function processTNGSData(workbook) {
+            try {
+                // 读取原始数据
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                
+                if (!data.length) {
+                    throw new Error('文件为空');
+                }
+                
+                // 定义输出表头
+                const outputHeaders = [
+                    '合同编号', '订单编号', '诺禾编号', '样本名称', '样本类型', '检测项目', '产品名称', '病原种数', '备注', '收样确认时间', '采样时间', '创建时间', '收样实验室', '共建实验室', '报告模板', '样本属性', '下单金额', '产品编码', '结算日期', '运营经理', '销售姓名', '报告接收人邮箱', '客户名称', '合同名称', '样本数量', '是否同意捐献', '实际结算金额', '客户采样识别码', '受检者姓名', '性别', '年龄', '联系电话', '送检医师', '送检医院', '科室病区', '住院号', '床号', '重点关注病原', '血WBC（10^9/L）', '胸腹水WBC（10^6/L）', '脑脊液WBC（10^6/L）', 'PCT（ng/mL)', 'CRP(mg/L）', '淋巴细胞比率（%）', '中性粒细胞比率（%）', '影像学检查', '培养结果', '镜检结果', '其他结果', '临床诊断', '临床症状', '抗感染用药及时长', '创建人名称', '送检实验室', '快递单号', '金匙样本编号', '客户名称', '金匙合同编码'
+                ];
+                
+                const result = [outputHeaders];
+                const inputHeaders = data[0];
+                
+                // 检查送检医院是否包含特定值
+                let hasSpecialHospital = false;
+                const specialHospitals = ['沈阳市胸科医院', '大连医科大学附属第一医院'];
+                
+                // 处理数据
+                for (let i = 1; i < data.length; i++) {
+                    const row = data[i];
+                    
+                    // 检查送检医院
+                    const hospitalIndex = inputHeaders.indexOf('送检医院');
+                    if (hospitalIndex !== -1) {
+                        const hospital = row[hospitalIndex];
+                        if (hospital && specialHospitals.includes(hospital)) {
+                            hasSpecialHospital = true;
+                        }
+                    }
+                    
+                    // 获取产品名称，用于判断是否需要特殊处理
+                    const productNameIndex = inputHeaders.indexOf('产品名称');
+                    const originalProductName = productNameIndex !== -1 ? row[productNameIndex] : '';
+                    const isSpecialProduct = originalProductName === 'USID-seq(200+)全系统感染病原靶向检测';
+                    
+                    // 获取客户名称，用于判断客户类型
+                    const customerNameIndex = inputHeaders.indexOf('客户名称');
+                    const originalCustomerName = customerNameIndex !== -1 ? row[customerNameIndex] : '';
+                    const isSpecialCustomer = originalCustomerName === '天津市北辰医院' || originalCustomerName === '湖南省第二人民医院（湖南省脑科医院）';
+                    
+                    const newRow = outputHeaders.map(header => {
+                        // 相同表头直接映射
+                        const inputIndex = inputHeaders.indexOf(header);
+                        if (inputIndex !== -1) {
+                            // 特殊处理年龄列，在原内容后面加一个"岁"字（如果没有的话）
+                            if (header === '年龄') {
+                                const age = row[inputIndex];
+                                if (age !== undefined && age !== null && age !== '') {
+                                    const ageStr = String(age);
+                                    // 如果已经包含"岁"字，就不再添加
+                                    return ageStr.includes('岁') ? ageStr : ageStr + '岁';
+                                }
+                                return '';
+                            }
+                            // 特殊处理临床诊断、临床症状、抗感染用药及时长，无内容时取"-"
+                            else if (header === '临床诊断' || header === '临床症状' || header === '抗感染用药及时长') {
+                                const value = row[inputIndex];
+                                return value ? value : '-';
+                            }
+                            // 其他字段直接映射
+                            return row[inputIndex];
+                        }
+                        
+                        // 特殊字段处理
+                        switch (header) {
+                            case '产品名称':
+                                // 原表检测产品为"USID-seq(200+)全系统感染病原靶向检测"时，产品名称修改为"诺禾200多种病原靶向测序"
+                                if (isSpecialProduct) {
+                                    return '诺禾200多种病原靶向测序';
+                                }
+                                return originalProductName;
+                            case '病原种数':
+                                // 原表检测产品为"USID-seq(200+)全系统感染病原靶向检测"时，病原种数修改为"诺禾200多种病原靶向测序"
+                                if (isSpecialProduct) {
+                                    return '诺禾200多种病原靶向测序';
+                                }
+                                return '';
+                            case '快递单号':
+                                // 快递单号全部写"-"
+                                return '-';
+                            case '客户名称':
+                                // 客户名称为天津市北辰医院或湖南省第二人民医院（湖南省脑科医院）输出天津诺禾医学检验所有限公司，其他客户名称输出广州诺禾医学检验所有限公司
+                                if (isSpecialCustomer) {
+                                    return '天津诺禾医学检验所有限公司';
+                                }
+                                return '广州诺禾医学检验所有限公司';
+                            case '金匙合同编码':
+                                // 金匙合同编码，客户名称为天津市北辰医院或湖南省第二人民医院（湖南省脑科医院）输出T1A250811001，其他客户名称输出T1A240117003
+                                if (isSpecialCustomer) {
+                                    return 'T1A250811001';
+                                }
+                                return 'T1A240117003';
+                            case '送检实验室':
+                            case '金匙样本编号':
+                                return ''; // 默认为空
+                            default:
+                                return '';
+                        }
+                    });
+                    
+                    // 检查：如果病原种数列内容是"诺禾200多种病原靶向测序"，那么产品名称列内容也修改为"诺禾200多种病原靶向测序"
+                    const outputProductNameIndex = outputHeaders.indexOf('产品名称');
+                    const pathogenCountIndex = outputHeaders.indexOf('病原种数');
+                    if (outputProductNameIndex !== -1 && pathogenCountIndex !== -1) {
+                        if (newRow[pathogenCountIndex] === '诺禾200多种病原靶向测序') {
+                            newRow[outputProductNameIndex] = '诺禾200多种病原靶向测序';
+                        }
+                    }
+                    
+                    result.push(newRow);
+                }
+                
+                // 生成新的工作簿
+                const newWorkbook = XLSX.utils.book_new();
+                const newSheet = XLSX.utils.aoa_to_sheet(result);
+                XLSX.utils.book_append_sheet(newWorkbook, newSheet, 'tNGS样本信息表');
+                
+                return { valid: true, workbook: newWorkbook, hasSpecialHospital: hasSpecialHospital };
+            } catch (error) {
+                return { valid: false, error: error.message };
+            }
+        }
+    </script>
+</body>
+</html>
