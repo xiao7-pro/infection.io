@@ -1002,13 +1002,17 @@
                     }
                     
                     if (matchingRow) {
-                        // 填充相同表头的字段
-                        templateHeaders.forEach((header, index) => {
-                            const mergedIndex = mergedHeaders.indexOf(header);
-                            if (mergedIndex !== -1 && matchingRow[mergedIndex]) {
-                                row[index] = matchingRow[mergedIndex];
-                            }
-                        });
+                        // 填充相同表头的字段（跳过产品名称列）
+                                templateHeaders.forEach((header, index) => {
+                                    // 跳过产品名称列
+                                    if (typeof header === 'string' && header.includes('产品名称')) {
+                                        return;
+                                    }
+                                    const mergedIndex = mergedHeaders.indexOf(header);
+                                    if (mergedIndex !== -1 && matchingRow[mergedIndex]) {
+                                        row[index] = matchingRow[mergedIndex];
+                                    }
+                                });
                         
                         // 特殊字段映射
                         // DNA浓度、RNA浓度对应提取浓度
