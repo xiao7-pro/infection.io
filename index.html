@@ -1163,7 +1163,11 @@
                     const originalCustomerName = customerNameIndex !== -1 ? row[customerNameIndex] : '';
                     const isSpecialCustomer = originalCustomerName === '天津市北辰医院' || originalCustomerName === '湖南省第二人民医院（湖南省脑科医院）';
                     
-                    const newRow = outputHeaders.map(header => {
+                    // 首先创建一个空行
+                    const newRow = Array(outputHeaders.length).fill('');
+                    
+                    // 处理每个表头
+                    outputHeaders.forEach((header, index) => {
                         // 相同表头直接映射
                         const inputIndex = inputHeaders.indexOf(header);
                         if (inputIndex !== -1) {
@@ -1173,53 +1177,64 @@
                                 if (age !== undefined && age !== null && age !== '') {
                                     const ageStr = String(age);
                                     // 如果已经包含"岁"字，就不再添加
-                                    return ageStr.includes('岁') ? ageStr : ageStr + '岁';
+                                    newRow[index] = ageStr.includes('岁') ? ageStr : ageStr + '岁';
                                 }
-                                return '';
                             }
                             // 特殊处理临床诊断、临床症状、抗感染用药及时长，无内容时取"-"
                             else if (header === '临床诊断' || header === '临床症状' || header === '抗感染用药及时长') {
                                 const value = row[inputIndex];
-                                return value ? value : '-';
+                                newRow[index] = value ? value : '-';
                             }
                             // 其他字段直接映射
-                            return row[inputIndex];
+                            else {
+                                newRow[index] = row[inputIndex];
+                            }
                         }
                         
                         // 特殊字段处理
-                        switch (header) {
-                            case '产品名称':
-                                // 原表检测产品为"USID-seq(200+)全系统感染病原靶向检测"时，产品名称修改为"诺禾200多种病原靶向测序"
-                                if (isSpecialProduct) {
-                                    return '诺禾200多种病原靶向测序';
-                                }
-                                return originalProductName;
-                            case '病原种数':
-                                // 原表检测产品为"USID-seq(200+)全系统感染病原靶向检测"时，病原种数修改为"诺禾200多种病原靶向测序"
-                                if (isSpecialProduct) {
-                                    return '诺禾200多种病原靶向测序';
-                                }
-                                return '';
-                            case '快递单号':
-                                // 快递单号全部写"-"
-                                return '-';
-                            case '客户名称':
-                                // 客户名称为天津市北辰医院或湖南省第二人民医院（湖南省脑科医院）输出天津诺禾医学检验所有限公司，其他客户名称输出广州诺禾医学检验所有限公司
-                                if (isSpecialCustomer) {
-                                    return '天津诺禾医学检验所有限公司';
-                                }
-                                return '广州诺禾医学检验所有限公司';
-                            case '金匙合同编码':
-                                // 金匙合同编码，客户名称为天津市北辰医院或湖南省第二人民医院（湖南省脑科医院）输出T1A250811001，其他客户名称输出T1A240117003
-                                if (isSpecialCustomer) {
-                                    return 'T1A250811001';
-                                }
-                                return 'T1A240117003';
-                            case '送检实验室':
-                            case '金匙样本编号':
-                                return ''; // 默认为空
-                            default:
-                                return '';
+                        else {
+                            switch (header) {
+                                case '产品名称':
+                                    // 原表检测产品为"USID-seq(200+)全系统感染病原靶向检测"时，产品名称修改为"诺禾200多种病原靶向测序"
+                                    if (isSpecialProduct) {
+                                        newRow[index] = '诺禾200多种病原靶向测序';
+                                    } else {
+                                        newRow[index] = originalProductName;
+                                    }
+                                    break;
+                                case '病原种数':
+                                    // 原表检测产品为"USID-seq(200+)全系统感染病原靶向检测"时，病原种数修改为"诺禾200多种病原靶向测序"
+                                    if (isSpecialProduct) {
+                                        newRow[index] = '诺禾200多种病原靶向测序';
+                                    }
+                                    break;
+                                case '快递单号':
+                                    // 快递单号全部写"-"
+                                    newRow[index] = '-';
+                                    break;
+                                case '客户名称':
+                                    // 当原表客户名称为‘天津市北辰医院’或‘湖南省第二人民医院（湖南省脑科医院）’输出表客户名称修改为‘天津诺禾医学检验所有限公司’
+                                    // 客户名称为其他客户名称时输出表种客户名称修改为‘广州诺禾医学检验所有限公司’
+                                    if (isSpecialCustomer) {
+                                        newRow[index] = '天津诺禾医学检验所有限公司';
+                                    } else {
+                                        newRow[index] = '广州诺禾医学检验所有限公司';
+                                    }
+                                    break;
+                                case '金匙合同编码':
+                                    // 当原表客户名称为‘天津市北辰医院’或‘湖南省第二人民医院（湖南省脑科医院）’金匙合同编码，输出‘T1A250811001’
+                                    // 客户名称为其他客户名称时金匙合同编码，输出‘T1A240117003’
+                                    if (isSpecialCustomer) {
+                                        newRow[index] = 'T1A250811001';
+                                    } else {
+                                        newRow[index] = 'T1A240117003';
+                                    }
+                                    break;
+                                case '送检实验室':
+                                case '金匙样本编号':
+                                    newRow[index] = ''; // 默认为空
+                                    break;
+                            }
                         }
                     });
                     
@@ -1233,6 +1248,29 @@
                     }
                     
                     result.push(newRow);
+                }
+                
+                // 处理完成后，根据金匙合同编码修改 BE 列的客户名称
+                // 找到金匙合同编码列和 BE 列的客户名称（第二个客户名称）
+                const keyContractCodeIndex = outputHeaders.indexOf('金匙合同编码');
+                const beCustomerNameIndex = outputHeaders.lastIndexOf('客户名称'); // BE 列是第二个客户名称
+                
+                if (keyContractCodeIndex !== -1 && beCustomerNameIndex !== -1) {
+                    // 遍历所有数据行
+                    for (let i = 1; i < result.length; i++) {
+                        const row = result[i];
+                        const contractCode = row[keyContractCodeIndex];
+                        
+                        // 根据金匙合同编码修改 BE 列的客户名称
+                        if (contractCode === 'T1A240117003') {
+                            row[beCustomerNameIndex] = '广州诺禾医学检验所有限公司';
+                        } else if (contractCode === 'T1A250811001') {
+                            row[beCustomerNameIndex] = '天津诺禾医学检验所有限公司';
+                        }
+                        
+                        // 输出调试信息，查看金匙合同编码和 BE 列客户名称
+                        console.log(`行 ${i}: 金匙合同编码 = ${contractCode}, BE 列客户名称 = ${row[beCustomerNameIndex]}`);
+                    }
                 }
                 
                 // 生成新的工作簿
