@@ -298,7 +298,7 @@
                     <i class="bi bi-cloud-upload"></i>
                     <p>拖拽文件到此处或点击上传</p>
                     <small>支持Excel文件 (.xlsx, .xls) 或 CSV（最多4个文件）</small>
-                    <p class="file-name" id="mngs-input-file-names"></p>
+                    <div id="mngs-file-list" class="mt-3"></div>
                 </div>
                 
                 <h5 class="mb-3">输出模板文件（Excel文件）</h5>
@@ -441,10 +441,13 @@
             });
         }
         
+        // 全局变量，存储已上传的文件
+        let mngsFiles = [];
+        
         // 当DOM加载完成后执行
         document.addEventListener('DOMContentLoaded', function() {
             // 初始化文件上传区域
-            initFileUpload('mngs-input-upload', 'mngs-input-files', 'mngs-input-file-names', true);
+            initMNGSFileUpload();
             initFileUpload('mngs-template-upload', 'mngs-template-file', 'mngs-template-file-name');
             initFileUpload('tngs-input-upload', 'tngs-input-file', 'tngs-input-file-name');
             
@@ -453,7 +456,7 @@
             
             // mNGS 模块处理
             document.getElementById('process-mngs').addEventListener('click', async () => {
-                const inputFiles = document.getElementById('mngs-input-files').files;
+                const inputFiles = mngsFiles;
                 const templateFile = document.getElementById('mngs-template-file').files[0];
                 
                 if (inputFiles.length === 0 || !templateFile) {
@@ -470,7 +473,7 @@
                     showAlert('mngs-result', '处理中...', 'info');
                     
                     // 读取所有输入文件
-                    const inputWorkbooks = await Promise.all(Array.from(inputFiles).map(file => readExcelFile(file)));
+                    const inputWorkbooks = await Promise.all(inputFiles.map(file => readExcelFile(file)));
                     // 读取模板文件
                     const templateWorkbook = await readExcelFile(templateFile);
                     
@@ -581,6 +584,102 @@
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
+        }
+        
+        // 初始化 mNGS 文件上传区域
+        function initMNGSFileUpload() {
+            const upload = document.getElementById('mngs-input-upload');
+            const input = document.getElementById('mngs-input-files');
+            const fileList = document.getElementById('mngs-file-list');
+            
+            // 点击上传
+            upload.addEventListener('click', () => {
+                input.click();
+            });
+            
+            // 文件选择
+            input.addEventListener('change', (e) => {
+                handleMNGSFiles(e.target.files);
+            });
+            
+            // 拖拽上传
+            upload.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                upload.classList.add('dragover');
+            });
+            
+            upload.addEventListener('dragleave', () => {
+                upload.classList.remove('dragover');
+            });
+            
+            upload.addEventListener('drop', (e) => {
+                e.preventDefault();
+                upload.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    handleMNGSFiles(e.dataTransfer.files);
+                }
+            });
+        }
+        
+        // 处理 mNGS 文件
+        function handleMNGSFiles(files) {
+            // 检查文件数量
+            const totalFiles = mngsFiles.length + files.length;
+            if (totalFiles > 4) {
+                showAlert('mngs-result', '最多只能上传4个输入文件', 'danger');
+                return;
+            }
+            
+            // 添加文件到数组
+            for (let i = 0; i < files.length; i++) {
+                mngsFiles.push(files[i]);
+            }
+            
+            // 更新文件列表
+            updateMNGSFileList();
+        }
+        
+        // 更新 mNGS 文件列表
+        function updateMNGSFileList() {
+            const fileList = document.getElementById('mngs-file-list');
+            fileList.innerHTML = '';
+            
+            if (mngsFiles.length === 0) {
+                fileList.innerHTML = '<p class="text-muted">暂无上传文件</p>';
+                return;
+            }
+            
+            // 创建文件列表
+            const list = document.createElement('ul');
+            list.className = 'list-group';
+            
+            mngsFiles.forEach((file, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                
+                const fileName = document.createElement('span');
+                fileName.textContent = file.name;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-danger btn-sm';
+                deleteBtn.textContent = '删除';
+                deleteBtn.onclick = (event) => {
+                    event.stopPropagation(); // 阻止事件冒泡，避免触发上传区域的点击事件
+                    removeMNGSFile(index);
+                };
+                
+                listItem.appendChild(fileName);
+                listItem.appendChild(deleteBtn);
+                list.appendChild(listItem);
+            });
+            
+            fileList.appendChild(list);
+        }
+        
+        // 删除 mNGS 文件
+        function removeMNGSFile(index) {
+            mngsFiles.splice(index, 1);
+            updateMNGSFileList();
         }
         
         // 全局变量，用于存储合并后的表格数据
