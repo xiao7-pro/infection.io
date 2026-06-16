@@ -1260,7 +1260,7 @@
                     // 获取客户名称，用于判断客户类型
                     const customerNameIndex = inputHeaders.indexOf('客户名称');
                     const originalCustomerName = customerNameIndex !== -1 ? row[customerNameIndex] : '';
-                    const isSpecialCustomer = originalCustomerName === '天津市北辰医院' || originalCustomerName === '湖南省第二人民医院（湖南省脑科医院）';
+                    const isSpecialCustomer = originalCustomerName === '天津市北辰医院' || originalCustomerName === '湖南省第二人民医院（湖南省脑科医院）' || originalCustomerName === '呼和浩特斯凯瑞医学检验所有限公司';
                     
                     // 首先创建一个空行
                     const newRow = Array(outputHeaders.length).fill('');
